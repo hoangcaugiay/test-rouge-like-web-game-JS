@@ -1,0 +1,1452 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chronicles of Valor - Roguelite Dungeon Crawler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <!-- 0. MAIN MENU SCREEN (MÀN HÌNH KHỞI ĐỘNG BAN ĐẦU) -->
+    <section
+      id="menu-screen"
+      class="game-screen active-screen main-menu-screen"
+    >
+      <div class="menu-particles-bg"></div>
+      <div class="menu-content-card">
+        <div class="menu-logo-badge">⚔️ 🛡️ 👑</div>
+        <h1 class="cinzel-title menu-game-title">CHRONICLES OF VALOR</h1>
+        <p class="menu-game-subtitle">ROGUELITE DUNGEON CRAWLER</p>
+        <div class="menu-divider"></div>
+
+        <div class="menu-actions">
+          <button
+            id="btn-continue-game"
+            class="menu-btn btn-continue"
+            disabled
+            title="Tiếp tục chuyến phiêu lưu từ dữ liệu lưu trước đó"
+          >
+            <span class="btn-icon">⚡</span>
+            <span class="btn-text">CHƠI TIẾP (CONTINUE)</span>
+            <span id="save-info-badge" class="btn-subtext"
+              >Không tìm thấy bản lưu</span
+            >
+          </button>
+
+          <button
+            id="btn-new-game"
+            class="menu-btn btn-new"
+            title="Bắt đầu chuyến thám hiểm hầm ngục mới từ đầu"
+          >
+            <span class="btn-icon">✨</span>
+            <span class="btn-text">MỚI GAME (NEW GAME)</span>
+            <span class="btn-subtext"
+              >Khởi tạo nhân vật &amp; Bản đồ ngẫu nhiên</span
+            >
+          </button>
+
+          <button
+            id="btn-hall-of-fame"
+            class="menu-btn btn-roster"
+            title="Xem danh sách những anh hùng đã được lưu danh vào Sảnh Danh Vọng"
+          >
+            <span class="btn-icon">🏛️</span>
+            <span class="btn-text">SẢNH DANH VỌNG</span>
+            <span class="btn-subtext"
+              >Xem nhân vật đã lưu &bull; <span id="hof-roster-count">0</span> Anh Hùng</span
+            >
+          </button>
+
+          <button
+            id="btn-pvp-arena"
+            class="menu-btn btn-arena"
+            disabled
+            title="Cần ít nhất 2 nhân vật đã lưu trong Danh Vọng để thi đấu"
+          >
+            <span class="btn-icon">⚔️</span>
+            <span class="btn-text">ĐẤU TRƯỜNG PvP</span>
+            <span class="btn-subtext"
+              >Đấu nhân vật đã lưu &bull; <span id="pvp-roster-count">0</span>/2
+              Tuyển Thủ</span
+            >
+          </button>
+        </div>
+
+        <div class="menu-footer-hint">
+          <span
+            >💾 Auto-save sau mỗi trận đánh &bull; 🏆 Lưu nhân vật vào Danh Vọng
+            sau mỗi Run</span
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- TOP PERSISTENT HUD (ẨN Ở MAIN MENU, HIỆN KHI VÀO GAME) -->
+    <header id="top-hud" class="top-hud" style="display: none">
+      <div class="hud-brand">
+        <span class="hud-icon">🛡️</span>
+        <span class="hud-title">CHRONICLES OF VALOR</span>
+      </div>
+
+      <div class="hud-player-stats" id="hud-player-stats">
+        <div class="hud-stat-pill name-pill">
+          <span class="stat-icon" id="hud-player-avatar">👤</span>
+          <span id="hud-player-name" class="stat-val">Chiến Binh</span>
+          <span id="hud-player-class" class="hud-class-tag">Warrior</span>
+        </div>
+
+        <!-- HP BAR (RED) -->
+        <div class="hud-bar-group">
+          <div class="bar-label-row">
+            <span class="bar-title">HP (Máu)</span>
+            <span id="hud-hp-text" class="bar-num">30/30</span>
+          </div>
+          <div class="bar-track">
+            <div
+              id="hud-hp-bar"
+              class="bar-fill hp-fill"
+              style="width: 100%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- MP BAR (BLUE) -->
+        <div class="hud-bar-group">
+          <div class="bar-label-row">
+            <span class="bar-title">MP (Mana)</span>
+            <span id="hud-mp-text" class="bar-num">15/15</span>
+          </div>
+          <div class="bar-track">
+            <div
+              id="hud-mp-bar"
+              class="bar-fill mp-fill"
+              style="width: 100%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- SP BAR (AMBER/GREEN - STAMINA) -->
+        <div class="hud-bar-group">
+          <div class="bar-label-row">
+            <span class="bar-title">SP (Thể Lực)</span>
+            <span id="hud-sp-text" class="bar-num">10/10</span>
+          </div>
+          <div class="bar-track">
+            <div
+              id="hud-sp-bar"
+              class="bar-fill sp-fill"
+              style="width: 100%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- GOLD STAT PILL -->
+        <div class="hud-stat-pill gold-pill">
+          <span class="stat-icon">💰</span>
+          <span>Vàng: <b id="hud-player-gold">50</b></span>
+        </div>
+
+        <div class="hud-stat-pill skill-pts-pill" id="hud-skill-pill" title="Nhấp để mở Bảng Lĩnh Hội Kỹ Năng">
+          <span class="stat-icon">✨</span>
+          <span>Kỹ Năng: <b id="hud-player-skill-points">1</b> SP</span>
+        </div>
+
+        <div class="hud-stat-pill">
+          <span class="stat-icon">🛡️</span>
+          <span>AC: <b id="hud-player-ac">14</b></span>
+        </div>
+
+        <div class="hud-stat-pill">
+          <span class="stat-icon">⚔️</span>
+          <span>Atk: <b id="hud-player-atk">+4</b></span>
+        </div>
+
+        <!-- RELIC BAR TRÊN TOP HUD -->
+        <div class="hud-relic-container" id="hud-relic-container">
+          <span class="relic-label">🔮 Cổ Vật:</span>
+          <div class="relic-list" id="hud-relic-list">
+            <!-- Render danh sách Relics động -->
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-actions">
+        <button id="btn-open-skills-hud" class="hud-btn btn-hud-skills" title="Mở Bảng Kỹ Năng & Lĩnh Hội Bí Kỹ">
+          ✨ <span>Kỹ Năng</span>
+          <span id="hud-skill-badge" class="hud-notification-dot" style="display: none;">1</span>
+        </button>
+        <button id="btn-open-inventory-hud" class="hud-btn" title="Mở Túi Đồ">
+          🎒 <span>Túi Đồ</span>
+        </button>
+        <button
+          id="btn-return-menu-hud"
+          class="hud-btn btn-hud-menu"
+          title="Lưu & Quay về Menu Chính"
+        >
+          🏠 <span>Menu</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main id="app-container">
+      <!-- 1. MAP SCREEN (BẢN ĐỒ PHÂN NHÁNH SLAY-THE-SPIRE STYLE) -->
+      <section id="map-screen" class="game-screen">
+        <div class="screen-header">
+          <div class="screen-title-row">
+            <h2 class="cinzel-title">BẢN ĐỒ HẦM NGỤC VÔ TẬN</h2>
+            <span id="map-stage-indicator" class="map-stage-badge"
+              >Giai đoạn: 1 / 10</span
+            >
+          </div>
+          <p class="screen-subtitle">
+            Bản đồ cố định 10 giai đoạn với 3-5 ngã rẽ mỗi chặng. Hãy cuộn ngang
+            sang phải để trinh sát lộ trình tới Sào Huyệt Boss.
+          </p>
+          <div class="autosave-indicator" id="autosave-indicator">
+            💾 Đã tự động lưu tiến trình game
+          </div>
+        </div>
+
+        <!-- MAP VIEWPORT CUỘN NGANG (OVERFLOW-X AUTO) -->
+        <div class="map-viewport-scrollable" id="map-viewport">
+          <div id="map-grid" class="map-grid-horizontal">
+            <svg id="map-lines" class="map-svg-overlay"></svg>
+            <div id="map-columns-wrapper" class="map-columns-wrapper">
+              <!-- Các cột Node (8-12 Cột) sinh bởi MapManager.js -->
+            </div>
+          </div>
+        </div>
+
+        <div class="map-legend">
+          <span class="legend-item"
+            ><span class="legend-badge starter">🎁</span> Kho Báu Khởi Đầu</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge combat">⚔️</span> Quái Thường (25%)</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge event">❓</span> Sự Kiện (25%)</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge elite">💀</span> Tinh Anh (15%)</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge rest">🔥</span> Lửa Trại (15%)</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge shop">💰</span> Thương Nhân (10%)</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge treasure">💎</span> Rương Bí Ẩn
+            (10%)</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge secret">🌀</span> Mật Đạo Ẩn (Bí
+            Mật)</span
+          >
+          <span class="legend-item"
+            ><span class="legend-badge boss">👿</span> Trùm Cuối (Boss)</span
+          >
+        </div>
+      </section>
+
+      <!-- 2. COMBAT SCREEN (ĐẤU TRƯỜNG TURN-BASED) -->
+      <section id="combat-screen" class="game-screen">
+        <!-- Turn Banner -->
+        <div id="turn-banner" class="turn-banner turn-player">
+          <span id="turn-banner-text">LƯỢT CỦA BẠN - HÃY RA QUYẾT ĐỊNH</span>
+        </div>
+
+        <!-- BATTLEFIELD STATUS (VÙNG MÔI TRƯỜNG / ĐỊA HÌNH FIELD DOMAIN) -->
+        <div id="battlefield-status" class="battlefield-status-bar" style="display: none;"></div>
+
+        <div class="combat-arena">
+          <!-- PLAYER CARD -->
+          <div class="combatant-card" id="player-combat-card">
+            <div class="avatar-wrapper">
+              <div
+                class="combatant-avatar player-avatar"
+                id="combat-player-avatar"
+              >
+                🛡️
+              </div>
+              <div class="reaction-tag" id="player-reaction-badge">
+                ⚡ Reaction: Có Sẵn
+              </div>
+            </div>
+            <div class="combatant-info">
+              <div class="combat-title-with-badge">
+                <h3 id="combat-player-name" class="combatant-name">
+                  Chiến Binh
+                </h3>
+                <span id="combat-player-class-badge" class="player-class-badge"
+                  >Chiến Binh</span
+                >
+              </div>
+
+              <div class="bar-group">
+                <div class="bar-label-row">
+                  <span>HP (Máu)</span>
+                  <span id="combat-player-hp-text">30/30</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    id="combat-player-hp-bar"
+                    class="bar-fill hp-fill"
+                    style="width: 100%"
+                  ></div>
+                </div>
+                <!-- THANH TRẠNG THÁI BUFF / DEBUFF CỦA PLAYER -->
+                <div class="status-bar" id="combat-player-status-bar"></div>
+              </div>
+
+              <div class="bar-group">
+                <div class="bar-label-row">
+                  <span>MP (Mana)</span>
+                  <span id="combat-player-mp-text">15/15</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    id="combat-player-mp-bar"
+                    class="bar-fill mp-fill"
+                    style="width: 100%"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="bar-group">
+                <div class="bar-label-row">
+                  <span>SP (Thể Lực)</span>
+                  <span id="combat-player-sp-text">10/10</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    id="combat-player-sp-bar"
+                    class="bar-fill sp-fill"
+                    style="width: 100%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- RAGE BAR (DÀNH CHO CHIẾN BINH / WARRIOR) -->
+              <div class="rage-bar-group" id="combat-player-rage-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span class="rage-label">🔥 NỘ KHÍ (RAGE):</span>
+                  <span id="combat-player-rage-text" class="rage-text">0/100</span>
+                </div>
+                <div class="bar-track rage-track">
+                  <div id="combat-player-rage-bar" class="bar-fill rage-fill" style="width: 0%"></div>
+                </div>
+                <div id="combat-player-berserk-badge" class="berserk-badge hidden">🔥 ĐIÊN CUỒNG! (3 hiệp)</div>
+              </div>
+
+              <!-- COMBO POINTS CONTAINER (DÀNH CHO ĐẠO TẶC / SÁT THỦ) -->
+              <div class="combo-points-group" id="combat-player-combo-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span class="combo-label">⚡ LIÊN KÍCH (COMBO):</span>
+                  <span id="combat-player-combo-text" class="combo-text">0/5</span>
+                </div>
+                <div class="combo-orbs-track" id="combat-player-combo-orbs">
+                  <div class="combo-orb" data-index="1"></div>
+                  <div class="combo-orb" data-index="2"></div>
+                  <div class="combo-orb" data-index="3"></div>
+                  <div class="combo-orb" data-index="4"></div>
+                  <div class="combo-orb" data-index="5"></div>
+                </div>
+              </div>
+
+              <!-- ARCANE OVERCHARGE CONTAINER (DÀNH CHO PHÁP SƯ / MAGE) -->
+              <div class="mage-crystal-group" id="combat-player-mage-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span class="mage-crystal-label">🔮 QUÁ TẢI (OVERCHARGE):</span>
+                  <span id="combat-player-mage-text" class="mage-crystal-text">0/3</span>
+                </div>
+                <div class="mana-crystals-track" id="combat-player-mage-crystals">
+                  <div class="mana-crystal" data-index="1">💎</div>
+                  <div class="mana-crystal" data-index="2">💎</div>
+                  <div class="mana-crystal" data-index="3">💎</div>
+                </div>
+              </div>
+
+              <div class="combatant-stats-mini">
+                <span>🛡️ Giáp (AC): <b id="combat-player-ac">14</b></span>
+                <span
+                  >⚔️ Vũ khí:
+                  <b id="combat-player-weapon">Kiếm Sắt (1d8+2)</b></span
+                >
+                <span>💰 Vàng: <b id="combat-player-gold">50</b></span>
+              </div>
+
+              <!-- RELIC BAR TRONG TRẬN ĐẤU -->
+              <div class="combat-relic-container">
+                <span class="combat-relic-title">🔮 Cổ Vật:</span>
+                <div class="combat-relic-list" id="combat-player-relics">
+                  <!-- Badges -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VS DIVIDER -->
+          <div class="vs-divider">
+            <div class="vs-circle">VS</div>
+          </div>
+
+          <!-- ENEMY CARD -->
+          <!-- ENEMY / P2 COMBAT CARD -->
+          <div class="combatant-card" id="enemy-combat-card">
+            <div class="avatar-wrapper">
+              <div
+                id="combat-enemy-avatar"
+                class="combatant-avatar enemy-avatar"
+              >
+                👹
+              </div>
+              <div class="enemy-tag" id="combat-enemy-type-badge">
+                Quái Thường
+              </div>
+              <div class="reaction-tag" id="enemy-reaction-badge" style="display: none;">
+                ⚡ Reaction: Có Sẵn
+              </div>
+            </div>
+            <div class="combatant-info">
+              <div class="combat-title-with-badge">
+                <h3 id="combat-enemy-name" class="combatant-name">
+                  Goblin Tiên Phong
+                </h3>
+                <span id="combat-enemy-class-badge" class="player-class-badge" style="display: none;"
+                  >Sát Thủ</span
+                >
+              </div>
+
+              <!-- HP BAR -->
+              <div class="bar-group">
+                <div class="bar-label-row">
+                  <span>HP (Máu)</span>
+                  <span id="combat-enemy-hp-text">18/18</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    id="combat-enemy-hp-bar"
+                    class="bar-fill hp-fill"
+                    style="width: 100%"
+                  ></div>
+                </div>
+                <!-- THANH TRẠNG THÁI BUFF / DEBUFF CỦA ENEMY -->
+                <div class="status-bar" id="combat-enemy-status-bar"></div>
+              </div>
+
+              <!-- MP BAR (HIỆN KHI LÀ PVP) -->
+              <div class="bar-group" id="combat-enemy-mp-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span>MP (Mana)</span>
+                  <span id="combat-enemy-mp-text">15/15</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    id="combat-enemy-mp-bar"
+                    class="bar-fill mp-fill"
+                    style="width: 100%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- SP BAR (HIỆN KHI LÀ PVP) -->
+              <div class="bar-group" id="combat-enemy-sp-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span>SP (Thể Lực)</span>
+                  <span id="combat-enemy-sp-text">10/10</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    id="combat-enemy-sp-bar"
+                    class="bar-fill sp-fill"
+                    style="width: 100%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- RAGE BAR (P2 TRONG PVP NẾU LÀ WARRIOR) -->
+              <div class="rage-bar-group" id="combat-enemy-rage-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span class="rage-label">🔥 NỘ KHÍ (RAGE):</span>
+                  <span id="combat-enemy-rage-text" class="rage-text">0/100</span>
+                </div>
+                <div class="bar-track rage-track">
+                  <div id="combat-enemy-rage-bar" class="bar-fill rage-fill" style="width: 0%"></div>
+                </div>
+                <div id="combat-enemy-berserk-badge" class="berserk-badge hidden">🔥 ĐIÊN CUỒNG! (3 hiệp)</div>
+              </div>
+
+              <!-- COMBO POINTS CONTAINER (P2 TRONG PVP NẾU LÀ ĐẠO TẶC) -->
+              <div class="combo-points-group" id="combat-enemy-combo-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span class="combo-label">⚡ LIÊN KÍCH (COMBO):</span>
+                  <span id="combat-enemy-combo-text" class="combo-text">0/5</span>
+                </div>
+                <div class="combo-orbs-track" id="combat-enemy-combo-orbs">
+                  <div class="combo-orb" data-index="1"></div>
+                  <div class="combo-orb" data-index="2"></div>
+                  <div class="combo-orb" data-index="3"></div>
+                  <div class="combo-orb" data-index="4"></div>
+                  <div class="combo-orb" data-index="5"></div>
+                </div>
+              </div>
+
+              <!-- ARCANE OVERCHARGE CONTAINER (P2 TRONG PVP NẾU LÀ MAGE) -->
+              <div class="mage-crystal-group" id="combat-enemy-mage-group" style="display: none;">
+                <div class="bar-label-row">
+                  <span class="mage-crystal-label">🔮 QUÁ TẢI (OVERCHARGE):</span>
+                  <span id="combat-enemy-mage-text" class="mage-crystal-text">0/3</span>
+                </div>
+                <div class="mana-crystals-track" id="combat-enemy-mage-crystals">
+                  <div class="mana-crystal" data-index="1">💎</div>
+                  <div class="mana-crystal" data-index="2">💎</div>
+                  <div class="mana-crystal" data-index="3">💎</div>
+                </div>
+              </div>
+
+              <!-- STATS MINI -->
+              <div class="combatant-stats-mini">
+                <span>🛡️ Giáp (AC): <b id="combat-enemy-ac">11</b></span>
+                <span id="combat-enemy-weapon-wrap" style="display: none;"
+                  >⚔️ Vũ khí: <b id="combat-enemy-weapon">Tay không (1d4)</b></span
+                >
+                <span id="combat-enemy-atk-wrap"
+                  >⚔️ Sát Thương: <b id="combat-enemy-atk">1d6+2</b></span
+                >
+                <span id="combat-enemy-gold-wrap"
+                  ><span id="combat-enemy-gold-label">💰 Vàng rớt:</span> <b id="combat-enemy-gold">12-22 Vàng</b></span
+                >
+              </div>
+
+              <!-- RELIC BAR TRONG TRẬN ĐẤU (HIỆN KHI LÀ PVP) -->
+              <div class="combat-relic-container" id="combat-enemy-relic-container" style="display: none;">
+                <span class="combat-relic-title">🔮 Cổ Vật:</span>
+                <div class="combat-relic-list" id="combat-enemy-relics">
+                  <span class="relic-empty-text">Chưa sở hữu cổ vật</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMBAT INTERACTION AREA: COMMAND MENU & COMBAT LOG -->
+        <div class="combat-lower-dock">
+          <!-- COMMAND MENU (CHỜ INPUT NGƯỜI CHƠI) -->
+          <div class="command-panel" id="command-panel">
+            <div class="command-title">LỰA CHỌN HÀNH ĐỘNG</div>
+
+            <!-- MENU CHÍNH (4 NÚT) -->
+            <div class="command-buttons-grid" id="command-menu-main">
+              <button
+                id="btn-cmd-attack"
+                class="cmd-btn btn-attack"
+                title="Chém thường bằng vũ khí chính (Tốn 2 SP)"
+              >
+                <span class="cmd-icon">⚔️</span>
+                <span class="cmd-text">TẤN CÔNG</span>
+                <span class="cmd-sub" id="btn-attack-cost">Tốn 2 SP</span>
+              </button>
+
+              <button
+                id="btn-cmd-skills"
+                class="cmd-btn btn-skill"
+                title="Mở danh sách kỹ năng đặc biệt"
+              >
+                <span class="cmd-icon">✨</span>
+                <span class="cmd-text">KỸ NĂNG</span>
+                <span class="cmd-sub">Tiêu hao MP / SP</span>
+              </button>
+
+              <button
+                id="btn-cmd-rest"
+                class="cmd-btn btn-rest"
+                title="Bỏ qua lượt tấn công để hồi phục 3 Thể Lực"
+              >
+                <span class="cmd-icon">🧘</span>
+                <span class="cmd-text">NGHỈ NGƠI</span>
+                <span class="cmd-sub">+3 SP hồi phục</span>
+              </button>
+
+              <button
+                id="btn-cmd-inventory"
+                class="cmd-btn btn-item"
+                title="Mở túi đồ uống bình máu/mana hoặc đổi trang bị"
+              >
+                <span class="cmd-icon">🎒</span>
+                <span class="cmd-text">TÚI ĐỒ</span>
+                <span class="cmd-sub">Dùng bình / Mặc đồ</span>
+              </button>
+            </div>
+
+            <!-- SUB-MENU KỸ NĂNG (ẨN MẶC ĐỊNH) -->
+            <div
+              class="skills-sub-panel"
+              id="skills-menu-sub"
+              style="display: none"
+            >
+              <div class="sub-header">
+                <span>CHỌN BÍ KỸ CHIẾN ĐẤU</span>
+                <button id="btn-skills-back" class="btn-sub-back">
+                  ⬅ Quay lại
+                </button>
+              </div>
+              <div id="skills-list-container" class="skills-list-grid">
+                <!-- Render động danh sách skill -->
+              </div>
+            </div>
+          </div>
+
+          <!-- COMBAT LOG CONSOLE -->
+          <div class="combat-log-card">
+            <div class="log-header">
+              <span>📜 NHẬT KÝ CHIẾN ĐẤU</span>
+              <button id="btn-clear-log" class="btn-log-clear">Xóa log</button>
+            </div>
+            <div id="combat-log-body" class="combat-log-body">
+              <div class="log-entry system-msg">
+                ⚔️ Bạn đã bước vào chiến trường. Hãy chuẩn bị xúc xắc và vũ khí!
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. REST SCREEN (LỬA TRẠI NGHỈ NGƠI) -->
+      <section id="rest-screen" class="game-screen">
+        <div class="rest-container">
+          <div class="rest-icon-large">🔥</div>
+          <h2 class="cinzel-title">LỬA TRẠI HẦM NGỤC</h2>
+          <p class="rest-desc">
+            Ánh lửa bập bùng xua tan sương lạnh tử khí. Đây là cơ hội hiếm hoi
+            để băng bó vết thương, tịnh tâm hồi phục thần trí và lấy lại trọn
+            vẹn thể lực trước trận chiến tiếp theo.
+          </p>
+
+          <div class="rest-recovery-preview">
+            <div class="recovery-box hp-box">
+              <span class="rec-icon">❤️</span>
+              <span class="rec-label">Hồi Phục Máu</span>
+              <span class="rec-val">+50% HP Tối Đa</span>
+            </div>
+            <div class="recovery-box mp-box">
+              <span class="rec-icon">💧</span>
+              <span class="rec-label">Hồi Phục Mana</span>
+              <span class="rec-val">+50% MP Tối Đa</span>
+            </div>
+            <div class="recovery-box sp-box">
+              <span class="rec-icon">⚡</span>
+              <span class="rec-label">Hồi Phục Thể Lực</span>
+              <span class="rec-val">100% SP Tối Đa</span>
+            </div>
+          </div>
+
+          <div class="rest-skill-status-box">
+            <span class="skill-status-pill">✨ Điểm Kỹ Năng: <b id="rest-skill-points-val">1</b></span>
+            <span class="skill-status-pill">🎯 Kỹ Năng Đang Có: <b id="rest-skill-count-val">1/4</b></span>
+          </div>
+
+          <div class="rest-actions">
+            <button id="btn-rest-sleep" class="btn-primary-large">
+              ⛺ NGHỈ NGƠI TẠI LỬA TRẠI (+50% HP, +50% MP, 100% SP)
+            </button>
+            <button id="btn-rest-cleanse" class="btn-sub-action">
+              ✨ CẦU NGUYỆN GIẢI NGUYỀN (Thanh tẩy 1 Lời Nguyền)
+            </button>
+            <button id="btn-rest-learn-skill" class="btn-primary-large btn-learn-skill">
+              ✨ HỌC KỸ NĂNG MỚI (TỐN 1 ĐIỂM KỸ NĂNG)
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- SKILL LEARN MODAL (LĨNH HỘI BÍ KỸ MỚI) -->
+    <div id="skill-learn-modal" class="modal-overlay" style="display: none">
+      <div class="skill-learn-modal-card">
+        <div class="skill-learn-header">
+          <span class="skill-learn-icon">✨</span>
+          <h2 class="cinzel-title">LĨNH HỘI BÍ KỸ MỚI</h2>
+          <div class="skill-learn-status-row" id="skill-learn-status-row">
+            <span class="skill-status-item">🌟 Điểm Kỹ Năng còn lại: <b id="modal-skill-points-val" class="highlight-val">1</b> SP</span>
+            <span class="skill-status-item">⚔️ Kỹ Năng sở hữu: <b id="modal-skill-count-val" class="highlight-val">2/4</b></span>
+          </div>
+          <p class="skill-learn-subtitle" id="skill-learn-subtitle">
+            Chọn 1 bí kỹ phù hợp với phong cách chiến đấu của bạn (Tiêu hao 1 Điểm Kỹ Năng, tối đa 4 kỹ năng).
+          </p>
+          <div id="skill-learn-alert-box" class="skill-modal-alert" style="display: none;"></div>
+        </div>
+
+        <div class="skill-learn-grid" id="skill-learn-grid">
+          <!-- 3 skill cards rendered dynamically by app.js -->
+        </div>
+
+        <div class="skill-learn-footer">
+          <button id="btn-reroll-learn-skill" class="btn-sub-action" style="display: none;">
+            🔄 Đổi Lựa Chọn Khác (Còn 1 lượt)
+          </button>
+          <button id="btn-cancel-learn-skill" class="btn-sub-back">
+            ⬅ Đóng Lại
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLASS SELECTION MODAL (CHỌN LỚP NHÂN VẬT KHI NEW GAME) -->
+    <div id="class-select-modal" class="modal-overlay" style="display: none">
+      <div class="class-modal-container">
+        <div class="class-modal-header">
+          <span class="class-header-icon">👑</span>
+          <h2 class="cinzel-title">CHỌN LỚP NHÂN VẬT KHỞI ĐẦU</h2>
+          <p class="class-modal-subtitle">
+            Hãy chọn phong cách chiến đấu cho chuyến thám hiểm hầm ngục. Mỗi lớp
+            nhân vật sở hữu chỉ số khởi đầu và 3 bí kỹ độc quyền.
+          </p>
+        </div>
+
+        <div class="class-cards-grid" id="class-cards-grid">
+          <!-- Render 3 thẻ class: Warrior, Mage, Rogue bởi app.js -->
+        </div>
+
+        <div class="class-modal-footer">
+          <button id="btn-cancel-class-select" class="btn-sub-back">
+            ⬅ Quay lại Menu
+          </button>
+          <button
+            id="btn-confirm-class-select"
+            class="btn-primary-large"
+            disabled
+          >
+            ⚔️ BẮT ĐẦU CHUYẾN THÁM HIỂM
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STARTER REWARD MODAL (CHỌN 1 TRONG 5 VẬT PHẨM KHỞI ĐẦU) -->
+    <div id="starter-reward-modal" class="modal-overlay" style="display: none">
+      <div class="starter-modal-container">
+        <div class="starter-modal-header">
+          <span class="starter-header-icon">🧰</span>
+          <h2 class="cinzel-title">KHO BÁU TÂN THỦ HẦM NGỤC</h2>
+          <p class="starter-modal-subtitle">
+            Hãy chọn <b>1 món bảo vật</b> làm hành trang khởi đầu. 4 món còn lại
+            sẽ tan biến vào bóng tối!
+          </p>
+        </div>
+
+        <div class="starter-cards-grid" id="starter-cards-grid">
+          <!-- Render động 5 thẻ vật phẩm bởi MapManager.js -->
+        </div>
+
+        <div class="starter-modal-hint">
+          <span
+            >💡 Mẹo: Chọn vũ khí sẽ tăng sát thương/đổi lối đánh, chọn
+            giáp/khiên tăng khả năng sống sót, bình thuốc giúp hồi phục tức
+            thời.</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- TREASURE CHEST MODAL (RƯƠNG BÍ ẨN) -->
+    <div id="treasure-modal" class="modal-overlay" style="display: none">
+      <div class="treasure-modal-card">
+        <div class="treasure-chest-anim">💎</div>
+        <h3 class="cinzel-title">RƯƠNG BÁU LÃNG QUÊN</h3>
+        <p class="treasure-modal-desc">
+          Bạn vừa mở khóa một rương báu cổ ẩn sâu trong khe nứt hầm ngục!
+        </p>
+
+        <div class="treasure-item-card" id="treasure-item-display">
+          <!-- Render vật phẩm nhặt được -->
+        </div>
+
+        <button id="btn-treasure-claim" class="btn-primary-large">
+          🎁 THU NHẬN BẢO VẬT
+        </button>
+      </div>
+    </div>
+
+    <!-- SECRET REWARD MODAL (MẬT ĐẠO HUYỀN BÍ) -->
+    <div id="secret-modal" class="modal-overlay" style="display: none">
+      <div class="treasure-modal-card secret-modal-card">
+        <div class="treasure-chest-anim secret-portal-anim">🌀</div>
+        <h3 class="cinzel-title secret-modal-title">KHO TÀNG MẬT ĐẠO CỔ</h3>
+        <p class="treasure-modal-desc">
+          Bạn đã đặt chân vào Mật Đạo Huyền Bí! Nơi đây cất giữ kho tàng thần
+          thoại thất truyền ngàn năm.
+        </p>
+
+        <div class="secret-gold-banner">
+          <span>💰 Vàng Thưởng: <b>+200 Vàng</b></span>
+        </div>
+
+        <div class="treasure-item-card is-legendary" id="secret-item-display">
+          <!-- Render Cổ vật huyền thoại -->
+        </div>
+
+        <button
+          id="btn-secret-claim"
+          class="btn-primary-large btn-secret-claim"
+        >
+          ✨ THU NHẬN KHO BÁU &amp; TIẾP TỤC
+        </button>
+      </div>
+    </div>
+
+    <!-- RANDOM EVENT MODAL (SỰ KIỆN NGẪU NHIÊN "?") -->
+    <div id="event-modal" class="modal-overlay" style="display: none">
+      <div class="event-modal-container">
+        <div class="event-modal-header">
+          <span class="event-header-icon" id="event-icon">🔮</span>
+          <h2 class="cinzel-title" id="event-title">SỰ KIỆN KỲ BÍ</h2>
+        </div>
+
+        <div class="event-modal-body">
+          <p id="event-desc" class="event-story-text">
+            Mô tả sự kiện kịch tính...
+          </p>
+
+          <div
+            id="event-outcome-box"
+            class="event-outcome-box"
+            style="display: none"
+          >
+            <!-- Thông báo kết quả lựa chọn -->
+          </div>
+
+          <div class="event-choices-list" id="event-choices-container">
+            <!-- Render các nút lựa chọn động -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MERCHANT SHOP MODAL (CỬA HÀNG THƯƠNG NHÂN: MUA & BÁN) -->
+    <div id="shop-modal" class="modal-overlay" style="display: none">
+      <div class="shop-modal-container">
+        <div class="shop-modal-header">
+          <div class="shop-header-left">
+            <span class="shop-header-icon">🧙‍♂️</span>
+            <div>
+              <h2 class="cinzel-title">TIỆM TẠP HÓA THẦN BÍ</h2>
+              <p class="shop-subtitle">
+                Chào lữ khách! Dùng Vàng để trang bị vũ khí quý hiếm hoặc bán lại chiến lợi phẩm trong ba lô.
+              </p>
+            </div>
+          </div>
+          <div class="shop-player-gold">
+            <span class="gold-label">Túi tiền:</span>
+            <span class="gold-amount-badge"
+              ><span class="gold-coin">💰</span>
+              <b id="shop-current-gold">50</b> Vàng</span
+            >
+          </div>
+        </div>
+
+        <!-- HỆ THỐNG TAB MUA & BÁN -->
+        <div class="shop-tabs-nav">
+          <button id="shop-tab-buy" class="shop-tab-btn active">
+            🛒 MUA VẬT PHẨM
+          </button>
+          <button id="shop-tab-sell" class="shop-tab-btn">
+            💰 BÁN ĐỒ TỪ BA LÔ (<span id="shop-sell-backpack-count">0</span>)
+          </button>
+        </div>
+
+        <!-- TAB CONTENT 1: MUA VẬT PHẨM -->
+        <div id="shop-view-buy" class="shop-tab-pane active">
+          <div class="shop-items-grid" id="shop-items-grid">
+            <!-- Render 3-4 món đồ bày bán -->
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 2: BÁN VẬT PHẨM -->
+        <div id="shop-view-sell" class="shop-tab-pane" style="display: none">
+          <div class="shop-sell-tip-banner">
+            ℹ️ <b>Quy tắc buôn bán:</b> Thương nhân thu mua các món đồ trong ba lô với <b>50% giá trị gốc</b>. Các trang bị bạn <i>đang mặc trên người</i> sẽ không hiển thị ở đây (hãy mở Túi Đồ tháo ra nếu muốn bán).
+          </div>
+          <div class="shop-items-grid" id="shop-sell-grid">
+            <!-- Render danh sách đồ trong ba lô có thể bán -->
+          </div>
+          <div id="shop-sell-empty" class="shop-sell-empty" style="display: none">
+            <span class="sell-empty-icon">🎒</span>
+            <p class="sell-empty-title">Ba Lô Của Bạn Đang Trống</p>
+            <p class="sell-empty-desc">Không có vật phẩm nào trong ba lô để bán lúc này.</p>
+          </div>
+        </div>
+
+        <div class="shop-modal-footer">
+          <button id="btn-leave-shop" class="btn-primary-large btn-leave-shop">
+            🚶 RỜI KHỎI CỬA HÀNG (TIẾP TỤC HÀNH TRÌNH)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL XÁC NHẬN BÁN ĐỒ TRONG SHOP -->
+    <div id="shop-sell-confirm-modal" class="modal-overlay" style="display: none">
+      <div class="shop-sell-confirm-card">
+        <div class="confirm-icon">💰</div>
+        <h3 class="cinzel-title confirm-title">XÁC NHẬN BÁN VẬT PHẨM</h3>
+        <p class="confirm-text">
+          Bạn có chắc chắn muốn bán <span id="sell-item-name" class="highlight-item-name">[Tên Đồ]</span> với giá <span id="sell-item-price" class="highlight-gold">0 Vàng</span>?
+        </p>
+        <p class="confirm-subtext">Hành động này không thể hoàn tác sau khi giao dịch hoàn tất.</p>
+        <div class="confirm-actions">
+          <button id="btn-cancel-sell" class="btn-sub-back">
+            HỦY BỎ
+          </button>
+          <button id="btn-confirm-sell" class="btn-primary-large btn-confirm-sell-btn">
+            ✅ ĐỒNG Ý BÁN
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REACTION PROMPT DIALOG (ACTIVE BLOCK MODAL CHO PLAYER) -->
+    <div
+      id="reaction-prompt-modal"
+      class="reaction-prompt-overlay"
+      style="display: none"
+    >
+      <div class="reaction-prompt-box">
+        <div class="reaction-prompt-header">
+          <span class="shield-pulse">🛡️</span>
+          <h3>QUÁI VẬT TẤN CÔNG TRÚNG!</h3>
+        </div>
+        <p class="reaction-prompt-desc">
+          Kẻ địch vừa tung đòn đánh nguy hiểm. Bạn có muốn tiêu hao
+          <b class="sp-highlight">3 SP</b> và lượt <b>Phản Ứng (Reaction)</b> để
+          giơ khiên Đỡ Đòn hay không?
+        </p>
+        <div class="reaction-prompt-stats">
+          <span>Thể lực hiện tại: <b id="prompt-current-sp">10</b> SP</span>
+          <span>Phí đỡ: <b class="sp-highlight">-3 SP</b></span>
+        </div>
+        <div class="reaction-prompt-actions">
+          <button id="btn-reaction-block" class="btn-reaction-confirm">
+            🛡️ ĐỠ ĐÒN (Tốn 3 SP)
+          </button>
+          <button id="btn-reaction-skip" class="btn-reaction-cancel">
+            💔 KHÔNG ĐỠ (Ăn trọn đòn)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTORY MODAL -->
+    <div id="inventory-modal" class="modal-overlay" style="display: none">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="inventory-title-with-gold">
+            <h3 class="cinzel-title">🎒 TÚI ĐỒ &amp; TRANG BỊ</h3>
+            <span class="inv-gold-badge"
+              ><span class="gold-coin">💰</span>
+              <b id="inv-player-gold">50</b> Vàng</span
+            >
+          </div>
+          <button id="btn-close-inventory" class="modal-close-btn">
+            &times;
+          </button>
+        </div>
+
+        <div class="inventory-content-grid">
+          <!-- KHUNG TRANG BỊ ĐANG MẶC -->
+          <div class="equipment-pane">
+            <h4 class="pane-title">TRANG BỊ ĐANG MẶC</h4>
+
+            <div class="equipment-slot-card" id="slot-weapon-card">
+              <div class="slot-badge">VŨ KHÍ CHÍNH</div>
+              <div class="slot-item-info">
+                <span class="slot-icon" id="slot-weapon-icon">⚔️</span>
+                <div class="slot-texts">
+                  <b id="slot-weapon-name" class="slot-name">Kiếm Sắt Cơ Bản</b>
+                  <span id="slot-weapon-stat" class="slot-stat"
+                    >Dmg: 1d8 | Atk Mod: +2</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="equipment-slot-card" id="slot-armor-card">
+              <div class="slot-badge">GIÁP THÂN</div>
+              <div class="slot-item-info">
+                <span class="slot-icon" id="slot-armor-icon">🛡️</span>
+                <div class="slot-texts">
+                  <b id="slot-armor-name" class="slot-name">Giáp Da Rách</b>
+                  <span id="slot-armor-stat" class="slot-stat">AC: 12</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="equipment-slot-card" id="slot-shield-card">
+              <div class="slot-badge">KHIÊN / ĐỠ ĐÒN</div>
+              <div class="slot-item-info">
+                <span class="slot-icon" id="slot-shield-icon">🔰</span>
+                <div class="slot-texts">
+                  <b id="slot-shield-name" class="slot-name">Khiên Gỗ Nhỏ</b>
+                  <span id="slot-shield-stat" class="slot-stat"
+                    >Block: 1d6 dmg | +1 AC</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="equipment-summary">
+              <div class="summary-row">
+                <span>Tổng Giáp (AC):</span> <b id="equip-total-ac">14</b>
+              </div>
+              <div class="summary-row">
+                <span>Thưởng Đánh (Atk Mod):</span>
+                <b id="equip-total-atk">+4</b>
+              </div>
+              <div class="summary-row">
+                <span>Sát Thương (Dmg):</span> <b id="equip-total-dmg">1d8+2</b>
+              </div>
+              <div class="summary-note">
+                💡 Lưu ý: Xem túi đồ hoặc đổi trang bị trong Combat KHÔNG làm
+                mất lượt. Chỉ khi cắn bình thuốc (Dùng item) mới kết thúc lượt!
+              </div>
+            </div>
+          </div>
+
+          <!-- KHUNG BA LÔ CHỨA ĐỒ (BAG) -->
+          <div class="backpack-pane">
+            <div class="backpack-header-row">
+              <h4 class="pane-title">BA LÔ HÀNH TRANG</h4>
+              <span id="backpack-count" class="backpack-counter"
+                >0/16 vật phẩm</span
+              >
+            </div>
+
+            <div id="backpack-grid" class="backpack-grid">
+              <!-- Render danh sách Item bởi InventoryManager.js -->
+            </div>
+
+            <!-- CHI TIẾT VẬT PHẨM ĐƯỢC CHỌN -->
+            <div
+              id="item-details-box"
+              class="item-details-box"
+              style="display: none"
+            >
+              <div class="detail-header">
+                <span id="detail-icon" class="detail-icon">🧪</span>
+                <div>
+                  <h5 id="detail-name" class="detail-title">Bình Máu Nhỏ</h5>
+                  <span id="detail-type" class="detail-type-badge"
+                    >Vật phẩm hồi phục</span
+                  >
+                </div>
+              </div>
+              <p id="detail-desc" class="detail-desc">
+                Hồi phục ngay lập tức 15 HP cho nhân vật.
+              </p>
+              <div class="detail-actions">
+                <button id="btn-detail-action" class="btn-item-use">
+                  DÙNG VẬT PHẨM
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D DICE OVERLAY (XOAY BẤT ĐỒNG BỘ ASYNC/AWAIT) -->
+    <div id="dice-overlay" class="dice-overlay" style="display: none">
+      <div class="dice-modal-content">
+        <div id="dice-action-title" class="dice-title">
+          ĐỔ XÚC XẮC D20 TẤN CÔNG
+        </div>
+        <div id="dice-action-desc" class="dice-desc">
+          Hiệp Sĩ đang dồn lực vung kiếm...
+        </div>
+
+        <div class="dice-3d-scene">
+          <div id="dice-cube" class="dice-cube">
+            <div class="cube-face face-front">20</div>
+            <div class="cube-face face-back">1</div>
+            <div class="cube-face face-right">15</div>
+            <div class="cube-face face-left">8</div>
+            <div class="cube-face face-top">10</div>
+            <div class="cube-face face-bottom">5</div>
+          </div>
+        </div>
+
+        <div class="dice-result-badge" id="dice-result-display">
+          KẾT QUẢ: <span id="dice-final-val">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOOT POPUP NOTIFICATION -->
+    <div id="loot-notification-toast" class="loot-toast" style="display: none">
+      <div class="loot-toast-icon">🎁</div>
+      <div class="loot-toast-content">
+        <div class="loot-toast-title">NHẶT ĐƯỢC CHIẾN LỢI PHẨM!</div>
+        <div id="loot-toast-text" class="loot-toast-desc">
+          Kiếm Thép Rèn (+3 Atk)
+        </div>
+      </div>
+    </div>
+
+    <!-- RELIC POPUP NOTIFICATION (CỔ VẬT NỘI TẠI) -->
+    <div
+      id="relic-notification-toast"
+      class="relic-toast"
+      style="display: none"
+    >
+      <div class="relic-toast-icon" id="relic-toast-icon">🔮</div>
+      <div class="relic-toast-content">
+        <div class="relic-toast-title">CỔ VẬT NỘI TẠI THỨC TỈNH!</div>
+        <div id="relic-toast-name" class="relic-toast-name">
+          Nanh Ma Cà Rồng
+        </div>
+        <div id="relic-toast-desc" class="relic-toast-desc">
+          Hồi 2 HP mỗi khi tấn công trúng.
+        </div>
+      </div>
+    </div>
+
+    <!-- CLASS SELECTION MODAL (CHỌN LỚP NHÂN VẬT KHI BẮT ĐẦU GAME MỚI) -->
+    <div id="class-select-modal" class="modal-overlay" style="display: none">
+      <div class="class-select-card">
+        <div class="class-select-header">
+          <div class="class-select-icon">⚔️ 🛡️ 🧙</div>
+          <h2 class="cinzel-title class-modal-title">CHỌN LỚP NHÂN VẬT</h2>
+          <p class="class-modal-desc">
+            Mỗi lớp nhân vật sở hữu chỉ số cơ bản, kỹ năng độc quyền và lối
+            chiến đấu đặc trưng riêng. Hãy chọn người hùng của bạn!
+          </p>
+        </div>
+
+        <!-- 3 Class Cards Grid -->
+        <div class="class-cards-grid" id="class-cards-grid">
+          <!-- Render bởi app.js qua CLASSES_DATABASE -->
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="class-modal-actions">
+          <button id="btn-cancel-class-select" class="btn-sub-back">
+            ⬅ Quay Lại Menu
+          </button>
+          <button
+            id="btn-confirm-class-select"
+            class="btn-primary-large btn-confirm-class"
+          >
+            🔥 XÁC NHẬN & DẤN THÂN VÀO HÀNH TRÌNH
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- END-RUN MODAL: TÓM TẮT RUN & DANH VỌNG (HALL OF FAME) -->
+    <div id="end-run-modal" class="modal-overlay" style="display: none">
+      <div class="end-run-card">
+        <!-- Header: Chiến thắng hay Tử trận -->
+        <div class="end-run-header">
+          <div id="end-run-icon" class="end-run-icon">💀</div>
+          <h2 id="end-run-title" class="cinzel-title end-run-title-text">
+            HÀNH TRÌNH KHÉP LẠI
+          </h2>
+          <p id="end-run-desc" class="end-run-desc-text">
+            Người anh hùng đã ngã xuống nơi sa trường...
+          </p>
+        </div>
+
+        <!-- Tóm tắt thành tích Run -->
+        <div class="end-run-summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">Nhân Vật</span>
+            <span id="summary-avatar" class="summary-val-icon">🛡️</span>
+            <span id="summary-class-name" class="summary-val">Hiệp Sĩ</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Máu Còn Lại</span>
+            <span id="summary-hp" class="summary-val">0/30</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Vàng Tích Lũy</span>
+            <span id="summary-gold" class="summary-val">💰 0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Giai Đoạn Đạt Được</span>
+            <span id="summary-column" class="summary-val">Cột 1</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Vũ Khí</span>
+            <span id="summary-weapon" class="summary-val">Tay Không</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Giáp</span>
+            <span id="summary-armor" class="summary-val">Áo Vải</span>
+          </div>
+        </div>
+
+        <!-- Mức độ hoàn thành -->
+        <div id="summary-completion-badge" class="summary-completion">
+          Hy Sinh Dọc Đường
+        </div>
+
+        <!-- Khu vực hành động chính -->
+        <div class="end-run-actions" id="end-run-main-actions">
+          <div class="end-run-choice-header">
+            <span class="end-run-choice-line"></span>
+            <span class="end-run-choice-title">⚔️ LỰA CHỌN SỐ PHẬN NHÂN VẬT</span>
+            <span class="end-run-choice-line"></span>
+          </div>
+          <div class="end-run-buttons-grid">
+            <button
+              id="btn-save-character-roster"
+              class="end-run-btn btn-save-roster"
+            >
+              <div class="er-btn-icon-wrapper">
+                <span class="er-btn-icon">🏆</span>
+              </div>
+              <div class="er-btn-content">
+                <span class="er-btn-title">LƯU NHÂN VẬT NÀY</span>
+                <span class="er-btn-sub"
+                  >Khắc tên vào Danh Vọng — Sẵn sàng tham chiến Đấu Trường PvP!</span
+                >
+              </div>
+            </button>
+            <button
+              id="btn-endrun-groom-inventory"
+              class="end-run-btn btn-groom-roster"
+            >
+              <div class="er-btn-icon-wrapper">
+                <span class="er-btn-icon">🎒</span>
+              </div>
+              <div class="er-btn-content">
+                <span class="er-btn-title">MỞ TÚI ĐỒ CHỈNH TRANG</span>
+                <span class="er-btn-sub"
+                  >Trang bị đồ mạnh nhất & sắp xếp hành trang trước khi lưu danh!</span
+                >
+              </div>
+            </button>
+            <button
+              id="btn-discard-character"
+              class="end-run-btn btn-discard-roster"
+            >
+              <div class="er-btn-icon-wrapper">
+                <span class="er-btn-icon">💨</span>
+              </div>
+              <div class="er-btn-content">
+                <span class="er-btn-title">KHÔNG LƯU (XÓA BỎ)</span>
+                <span class="er-btn-sub"
+                  >Nhân vật sẽ tan biến vĩnh viễn vào hư vô — không thể hoàn tác!</span
+                >
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Khu vực nhập tên để lưu (ẩn mặc định) -->
+        <div
+          class="save-roster-input-wrap"
+          id="save-roster-input-wrap"
+          style="display: none"
+        >
+          <label class="roster-input-label"
+            >📝 Đặt tên hiệu cho nhân vật huyền thoại:</label
+          >
+          <input
+            type="text"
+            id="roster-hero-name"
+            class="roster-name-input"
+            placeholder="VD: Thần Kiếm Truyền Thuyết..."
+            maxlength="30"
+          />
+          <div class="save-roster-actions">
+            <button id="btn-cancel-save-roster" class="btn-sub-back">
+              ⬅ Quay lại
+            </button>
+            <button id="btn-submit-save-roster" class="btn-primary-large">
+              ✅ XÁC NHẬN LƯU VÀO DANH VỌNG
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK EQUIP MODAL (TRANG BỊ NHANH KHI NHẶT ĐỒ CHIẾN THẮNG) -->
+    <div id="quick-equip-modal" class="modal-overlay" style="display: none">
+      <div class="quick-equip-card">
+        <div class="quick-equip-header">
+          <div class="quick-equip-icon-wrap">
+            <span class="quick-equip-icon">🎁</span>
+          </div>
+          <h2 id="quick-equip-title" class="cinzel-title quick-equip-title">
+            CHIẾN LỢI PHẨM TRANG BỊ MỚI!
+          </h2>
+          <p id="quick-equip-subtitle" class="quick-equip-subtitle">
+            So sánh với trang bị đang mặc và đưa ra quyết định:
+          </p>
+        </div>
+
+        <!-- Khung so sánh 2 cột (Đồ mới vs Đang mặc) -->
+        <div id="quick-equip-comparison-wrap" class="quick-equip-comparison-wrap">
+          <div id="quick-equip-new-col" class="quick-equip-col">
+            <!-- Đồ mới nhặt -->
+          </div>
+          <div id="quick-equip-cur-col" class="quick-equip-col">
+            <!-- Đồ đang mặc -->
+          </div>
+        </div>
+
+        <!-- 2 Nút hành động -->
+        <div class="quick-equip-actions">
+          <button id="btn-quick-equip-now" class="btn-quick-equip-confirm">
+            ⚡ TRANG BỊ NGAY
+          </button>
+          <button id="btn-quick-equip-stash" class="btn-quick-equip-stash">
+            🎒 CẤT VÀO TÚI ĐỒ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HALL OF FAME SCREEN (SẢNH DANH VỌNG) -->
+    <section id="hall-of-fame-screen" class="game-screen">
+      <div class="hof-container">
+        <!-- Header -->
+        <div class="hof-header">
+          <div class="hof-top-bar">
+            <button id="btn-hof-back" class="btn-sub-back hof-back-btn">
+              ⬅ Quay lại Menu Chính
+            </button>
+            <div class="hof-badge-wrap">
+              <span id="hof-total-heroes" class="hof-count-pill">🏆 0 Anh Hùng</span>
+            </div>
+          </div>
+
+          <div class="hof-title-hero">
+            <div class="hof-temple-emblem">🏛️</div>
+            <h1 class="cinzel-title hof-main-title">SẢNH DANH VỌNG</h1>
+            <p class="hof-subtitle">
+              Nơi lưu danh những chiến binh kiệt xuất đã từng dấn thân vào hầm ngục và viết nên huyền thoại
+            </p>
+            <div class="hof-ornate-divider">
+              <span class="hof-divider-line"></span>
+              <span class="hof-divider-icon">👑</span>
+              <span class="hof-divider-line"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="hof-content-wrap">
+          <div id="hof-roster-grid" class="hof-grid">
+            <!-- Render danh sách nhân vật bởi App.js -->
+          </div>
+
+          <!-- Empty State khi chưa có nhân vật nào -->
+          <div id="hof-empty-state" class="hof-empty-state" style="display: none">
+            <div class="hof-empty-icon">🏜️</div>
+            <h3 class="hof-empty-title">Chưa Có Nhân Vật Nào Được Lưu</h3>
+            <p class="hof-empty-desc">
+              Chưa có nhân vật nào được lưu. Hãy bắt đầu một cuộc hành trình mới và khắc tên mình vào Sảnh Danh Vọng!
+            </p>
+            <button id="btn-hof-start-game" class="btn-primary-large hof-empty-btn">
+              ✨ BẮT ĐẦU CUỘC HÀNH TRÌNH MỚI
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARENA SETUP SCREEN (MÀN HÌNH CHỌN TƯỚNG PvP) -->
+    <section id="arena-screen" class="game-screen">
+      <div class="arena-setup-container">
+        <div class="arena-setup-header">
+          <h2 class="cinzel-title">⚔️ ĐẤU TRƯỜNG DANH VỌNG ⚔️</h2>
+          <p class="arena-setup-subtitle">
+            Chọn 2 tuyển thủ từ Danh Sách Danh Vọng để tiến hành trận đấu
+            offline (Hotseat). Dữ liệu gốc sẽ không bị ảnh hưởng.
+          </p>
+        </div>
+
+        <!-- 2 Ô Chọn Tuyển Thủ -->
+        <div class="arena-versus-layout">
+          <!-- Tuyển thủ P1 (Bên Trái - Xanh) -->
+          <div class="arena-player-slot" id="arena-slot-p1">
+            <div class="arena-slot-header p1-header">⚔️ TUYỂN THỦ 1</div>
+            <div class="arena-selected-champion" id="arena-p1-display">
+              <div class="arena-empty-slot">
+                ❓<br /><small>Chưa chọn tuyển thủ</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- VS Divider -->
+          <div class="arena-vs-divider">
+            <div class="arena-vs-circle">VS</div>
+          </div>
+
+          <!-- Tuyển thủ P2 (Bên Phải - Đỏ) -->
+          <div class="arena-player-slot" id="arena-slot-p2">
+            <div class="arena-slot-header p2-header">🛡️ TUYỂN THỦ 2</div>
+            <div class="arena-selected-champion" id="arena-p2-display">
+              <div class="arena-empty-slot">
+                ❓<br /><small>Chưa chọn tuyển thủ</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danh sách Roster đã lưu -->
+        <div class="arena-roster-section">
+          <h3 class="arena-roster-title">
+            📋 DANH SÁCH DANH VỌNG — BẤM ĐỂ CHỌN
+          </h3>
+          <div id="arena-roster-list" class="arena-roster-grid">
+            <!-- Render bởi ArenaManager.js -->
+          </div>
+          <div
+            id="arena-roster-empty"
+            class="arena-roster-empty"
+            style="display: none"
+          >
+            <span
+              >🏜️ Danh Vọng trống rỗng. Hãy chơi và lưu ít nhất 2 nhân vật để mở
+              khóa Đấu Trường!</span
+            >
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="arena-setup-footer">
+          <button id="btn-arena-back" class="btn-sub-back">
+            ⬅ Quay lại Menu
+          </button>
+          <button
+            id="btn-arena-start"
+            class="btn-primary-large btn-arena-start"
+            disabled
+          >
+            ⚔️ BẮT ĐẦU CHIẾN ĐẤU!
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAP NODE HOVER TOOLTIP -->
+    <div id="node-tooltip" class="hidden"></div>
+
+    <!-- FLOATING ITEM HOVER TOOLTIP -->
+    <div id="item-tooltip" class="hidden"></div>
+
+    <!-- SCRIPTS (ES6 MODULES) -->
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
